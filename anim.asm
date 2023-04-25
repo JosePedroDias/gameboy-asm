@@ -1,9 +1,10 @@
 INCLUDE "hardware.inc"
 
 ; constants
-DEF FRAMES EQU 30;120
-DEF X_MIN EQU 16
-DEF X_MAX EQU 90
+DEF FRAMES EQU 30
+DEF X_MIN EQU  6; +  8 ; offset x is 8
+DEF X_MAX EQU 154 +  8
+DEF Y     EQU  62 + 16  ; offset y is 16
 
 SECTION "Start", ROM0[$100]
 	jp EntryPoint
@@ -29,9 +30,9 @@ EntryPoint:
     ld hl, _OAMRAM
 
     ; define object (select)
-    ld a, 0 + 16 ; y
+    ld a, Y;0 + 16 ; y
     ld [hli], a
-    ld a, 0 + 8 ; x
+    ld a, X_MIN;0 + 8 ; x
     ld [hli], a
     ld a, 0 ; tile id
     ld [hli], a 
@@ -65,25 +66,42 @@ Main:
 
     ld a, [frameNo]
     dec a
-    jp z, GoOn
+    jp z, DoFrame
     ld [frameNo], a
     jp Main
-
-GoOn:
+DoFrame:
     ld a, FRAMES
     ld [frameNo], a
 
+    ld a, [dx]
+    ld b, a
+    ld a, 1
+    cp a, b
+    jp z, GoingRight
+
+; going left
     ld a, [x]
+    dec a
+    cp a, X_MIN
+    jp nz, MoveObject
+    ld b, a
+    ld a, 1
+    ld [dx], a
+    ld a, b
+    jp MoveObject
 
+GoingRight:
+    ld a, [x]
     inc a
-
     cp a, X_MAX
-    jp nz, SkipXReset
-    ld a, X_MIN
-SkipXReset:
+    jp nz, MoveObject
+    ld b, a
+    ld a, -1
+    ld [dx], a
+    ld a, b
 
+MoveObject:
     ld [x], a
-
     ld hl, _OAMRAM + 1
     ld [hli], a
 
