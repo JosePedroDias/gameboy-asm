@@ -22,10 +22,17 @@ Memcopy:
 
 
 UpdateKeys:
+    push af
+    push bc
+    ;push de
+    ;push hl
+
 	; Poll half the controller
 	ld a, P1F_GET_BTN
 	call .onenibble
 	ld b, a ; B7-4 = 1; B3-0 = unpressed buttons
+
+    ;call .knownRet
   
 	; Poll the other half
 	ld a, P1F_GET_DPAD
@@ -45,18 +52,23 @@ UpdateKeys:
 	ld [wNewKeys], a
 	ld a, b
 	ld [wCurKeys], a
+
+    pop bc
+    pop af
 	ret
-  
   .onenibble
 	ldh [rP1], a ; switch the key matrix
-	call .knownret ; burn 10 cycles calling a known ret
+    call .knownRet
 	ldh a, [rP1] ; ignore value while waiting for the key matrix to settle
 	ldh a, [rP1]
+    ldh a, [rP1]
+    ldh a, [rP1]
+    ldh a, [rP1]
 	ldh a, [rP1] ; this read counts
 	or a, $F0 ; A7-4 = 1; A3-0 = unpressed keys
-  .knownret
-	ret
-
+    ret
+.knownRet
+    ret
 
 ClearOam:
     ld a, 0
