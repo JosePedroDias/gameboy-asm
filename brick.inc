@@ -1,6 +1,7 @@
 SECTION "Tile data", ROM0
 
 Tiles:
+	; bg tiles
 	dw `33333333
 	dw `33333333
 	dw `33333333
@@ -82,7 +83,7 @@ Tiles:
 	dw `23232323
 	dw `33333333
     
-	; Paste your logo here:
+	; Paste your logo here (duck):
 	dw `22222222
 	dw `22222222
 	dw `22222222
@@ -211,7 +212,6 @@ Tiles:
 	dw `00222222
 	dw `00222222
 	dw `22222222
-
 TilesEnd:
 
 Paddle:

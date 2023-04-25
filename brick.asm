@@ -10,42 +10,29 @@ EntryPoint:
 	ld [rNR52], a
 
 	; Do not turn the LCD off outside of VBlank
-WaitVBlank:
-	ld a, [rLY]
-	cp 144
-	jp c, WaitVBlank
+	call WaitVBlank
 
 	; Turn the LCD off
 	ld a, 0
 	ld [rLCDC], a
 
-	; Copy the tile data
+	; Copy the tile data (bg)
 	ld de, Tiles
 	ld hl, $9000
 	ld bc, TilesEnd - Tiles
+	call Memcopy
 
-CopyTiles:
-	ld a, [de]
-	ld [hli], a
-	inc de
-	dec bc
-	ld a, b
-	or a, c
-	jp nz, CopyTiles
-
+	; Copy the tile data (objects: paddle)
+	ld de, Paddle
+	ld hl, $8000
+	ld bc, PaddleEnd - Paddle
+	call Memcopy
+	
 	; Copy the tilemap
 	ld de, Tilemap
 	ld hl, $9800
 	ld bc, TilemapEnd - Tilemap
-
-CopyTilemap:
-	ld a, [de]
-	ld [hli], a
-	inc de
-	dec bc
-	ld a, b
-	or a, c
-	jp nz, CopyTilemap
+	call Memcopy
 
     ; set BGP palette
     ;ld a, %00011011 ; black to white
@@ -53,27 +40,13 @@ CopyTilemap:
 	ld [rBGP], a
 
 	; Turn the LCD on
-	ld a, LCDCF_ON | LCDCF_BGON
-	ld [rLCDC], a
+	;ld a, LCDCF_ON | LCDCF_BGON
+	;ld [rLCDC], a
 
     ; clean OAM
     ld a, 0
     ld b, 160
     ld hl, _OAMRAM
-
-	; Copy the tile data
-    ld de, Paddle
-    ld hl, $8000
-    ld bc, PaddleEnd - Paddle
-
-CopyPaddle:
-    ld a, [de]
-    ld [hli], a
-    inc de
-    dec bc
-    ld a, b
-    or a, c
-    jp nz, CopyPaddle
 
 ClearOam:
     ld [hli], a
@@ -104,17 +77,8 @@ ClearOam:
 	ld a, 0
     ld [wFrameCounter], a
 
-
 Main:
-    ; Wait until it's *not* VBlank
-    ld a, [rLY]
-    cp 144
-    jp nc, Main
-
-WaitVBlank2:
-    ld a, [rLY]
-    cp 144
-    jp c, WaitVBlank2
+	call WaitVBlank
 
 	ld a, [wFrameCounter]
     inc a
@@ -131,6 +95,31 @@ WaitVBlank2:
     inc a
     ld [_OAMRAM + 1], a
     jp Main
+
+
+
+; wait for vblank to continue
+WaitVBlank:
+	ld a, [rLY]
+	cp 144
+	jp c, WaitVBlank
+	ret
+
+; Copy bytes from one area to another.
+; @param de: Source
+; @param hl: Destination
+; @param bc: Length
+Memcopy:
+    ld a, [de]
+    ld [hli], a
+    inc de
+    dec bc
+    ld a, b
+    or a, c
+    jp nz, Memcopy
+    ret
+
+
 
 SECTION "Counter", WRAM0
 	wFrameCounter: db
