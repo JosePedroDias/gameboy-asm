@@ -94,6 +94,8 @@ ClearOam:
 Main:
 	call WaitVBlank
 
+	jp AfterFC
+
 	ld a, [wFrameCounter]
     inc a
     ld [wFrameCounter], a
@@ -102,6 +104,7 @@ Main:
     ld a, 0 ; Reset the frame counter back to 0
     ld [wFrameCounter], a
 
+AfterFC:
 	; Add the ball's momentum to its position in OAM.
     ld a, [wBallMomentumX]
     ld b, a
@@ -114,6 +117,69 @@ Main:
     ld a, [_OAMRAM + 4] ;ball's y
     add a, b
     ld [_OAMRAM + 4], a
+
+	;jp BounceDone
+
+BounceOnTop:
+    ; Remember to offset the OAM position!
+    ; (8, 16) in OAM coordinates is (0, 0) on the screen.
+    ld a, [_OAMRAM + 4]
+    sub a, 16 + 1 ; CHECK (x, y-1)
+    ld c, a ; c = y
+    ld a, [_OAMRAM + 5]
+    sub a, 8
+    ld b, a ; b = x
+    call GetTileByPixel ; Returns tile address in hl
+    ld a, [hl]
+    call IsWallTile
+    jp nz, BounceOnRight
+    ld a, 1
+    ld [wBallMomentumY], a
+
+BounceOnRight:
+    ld a, [_OAMRAM + 4]
+    sub a, 16
+    ld c, a
+    ld a, [_OAMRAM + 5]
+    sub a, 8 - 1 ; CHECK (x+1, y)
+    ld b, a
+    call GetTileByPixel
+    ld a, [hl]
+    call IsWallTile
+    jp nz, BounceOnLeft
+    ld a, -1
+    ld [wBallMomentumX], a
+
+BounceOnLeft:
+    ld a, [_OAMRAM + 4]
+    sub a, 16
+    ld c, a
+    ld a, [_OAMRAM + 5]
+    sub a, 8 + 1 ; CHECK (x-1, y)
+    ld b, a
+    call GetTileByPixel
+    ld a, [hl]
+    call IsWallTile
+    jp nz, BounceOnBottom
+    ld a, 1
+    ld [wBallMomentumX], a
+
+BounceOnBottom:
+    ld a, [_OAMRAM + 4]
+    sub a, 16 - 1 ; CHECK (x, y+1)
+    ld c, a
+    ld a, [_OAMRAM + 5]
+    sub a, 8
+    ld b, a
+    call GetTileByPixel
+    ld a, [hl]
+    call IsWallTile
+    jp nz, BounceDone
+    ld a, -1
+    ld [wBallMomentumY], a
+
+BounceDone:
+
 
 	; Check the current keys every frame and move left or right.
 	call UpdateKeys
@@ -156,6 +222,7 @@ WaitVBlank:
 	cp 144
 	jp c, WaitVBlank
 	ret
+
 
 ; Copy bytes from one area to another.
 ; @param de: Source
@@ -208,6 +275,57 @@ UpdateKeys:
   .knownret
 	ret
   
+
+; Convert a pixel position to a tilemap address
+; hl = $9800 + X + Y * 32
+; @param b: X
+; @param c: Y
+; @return hl: tile address
+GetTileByPixel:
+    ; First, we need to divide by 8 to convert a pixel position to a tile position.
+    ; After this we want to multiply the Y position by 32.
+    ; These operations effectively cancel out so we only need to mask the Y value.
+    ld a, c
+    and a, %11111000
+    ld l, a
+    ld h, 0
+    ; Now we have the position * 8 in hl
+    add hl, hl ; position * 16
+    add hl, hl ; position * 32
+    ; Convert the X position to an offset.
+    ld a, b
+    srl a ; a / 2
+    srl a ; a / 4
+    srl a ; a / 8
+    ; Add the two offsets together.
+    add a, l
+    ld l, a
+    adc a, h
+    sub a, l
+    ld h, a
+    ; Add the offset to the tilemap's base address, and we are done!
+    ld bc, $9800
+    add hl, bc
+    ret
+
+
+; @param a: tile ID
+; @return z: set if a is a wall.
+IsWallTile:
+    cp a, $00
+    ret z
+    cp a, $01
+    ret z
+    cp a, $02
+    ret z
+    cp a, $04
+    ret z
+    cp a, $05
+    ret z
+    cp a, $06
+    ret z
+    cp a, $07
+    ret
 
 
 SECTION "Counter", WRAM0
