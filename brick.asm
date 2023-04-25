@@ -89,17 +89,22 @@ ClearOam:
 	ld [wBallMomentumX], a
 	ld a, -1 ; up
 	ld [wBallMomentumY], a
+
+	; resetting keys (not required, used if I dont call the fn UpdateKeys)
+	; ld a, 0
+	; ld [wNewKeys], a
+	; ld [wCurKeys], a
 	
 
 Main:
 	call WaitVBlank
 
-	jp AfterFC
+	jp AfterFC ; changing this breaks the game, crap
 
 	ld a, [wFrameCounter]
     inc a
     ld [wFrameCounter], a
-    cp a, 10 ; Every 15 frames (a quarter of a second), run the following code
+    cp a, 3 ; every 3 frames, aka 60/3 = 20 fps
     jp nz, Main
     ld a, 0 ; Reset the frame counter back to 0
     ld [wFrameCounter], a
@@ -179,8 +184,32 @@ BounceOnBottom:
     ld [wBallMomentumY], a
 
 BounceDone:
+	;jp PaddleBounceDone
 
+	; TODO THIS PART IS NOT WORKING WELL
 
+    ; First, check if the ball is low enough to bounce off the paddle.
+    ld a, [_OAMRAM] ; paddle_y
+    ld b, a
+    ld a, [_OAMRAM + 4] ; ball_y
+	sub a, 6 ; tweaking the bounce height
+    cp a, b
+    jp nz, PaddleBounceDone ; If the ball isn't at the same Y position as the paddle, it can't bounce.
+    ; Now let's compare the X positions of the objects to see if they're touching.
+    ld a, [_OAMRAM + 5] ; ball_x
+    ld b, a
+    ld a, [_OAMRAM + 1] ; paddle_x
+    sub a, 8
+    cp a, b
+    jp c, PaddleBounceDone ; to the left < 8 (12 to the left of paddle center)
+    add a, 8 + 16 ; 8 to undo, 16 as the width.
+    cp a, b
+    jp nc, PaddleBounceDone ; to the right > 8 + 16 (12 to the right of paddle center)
+
+    ld a, -1
+    ld [wBallMomentumY], a
+
+PaddleBounceDone:
 	; Check the current keys every frame and move left or right.
 	call UpdateKeys
 
@@ -220,7 +249,7 @@ Right:
 WaitVBlank:
 	ld a, [rLY]
 	cp 144
-	jp c, WaitVBlank
+	jp c, WaitVBlank ; while rLY < 144
 	ret
 
 
