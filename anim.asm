@@ -58,6 +58,9 @@ EntryPoint:
     ld a, X_MIN
     ld [x], a
 
+    ld a, 50
+    ld [y], a
+
     ld a, 1
     ld [dx], a
 
@@ -79,7 +82,19 @@ DoFrame:
     cp a, b
     jp z, GoingRight
 
-; going left
+    call UpdateKeys
+
+    ld a, [wCurKeys]
+    and a, PADF_UP
+    jp z, GoingLeft
+
+    ld a, [y]
+    dec a
+    ld hl, _OAMRAM
+    ld [hl], a
+    ld [y], a
+
+GoingLeft:
     ld a, [x]
     dec a
     cp a, X_MIN
@@ -102,9 +117,8 @@ GoingRight:
 
 MoveObject:
     ld [x], a
-    ld hl, _OAMRAM + 1
-    ld [hli], a
-
+    ld hl, _OAMRAM+1
+    ld [hl], a
     jp Main
 
 
@@ -121,6 +135,7 @@ SECTION "Vars", WRAM0
     frameNo: db
 
     x: db
+    y: db
     dx: db
 
     wCurKeys: db

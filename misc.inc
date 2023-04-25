@@ -1,8 +1,11 @@
 ; wait for vblank to continue
 WaitVBlank:
+    push af ; a
+.waitVBlank:
 	ld a, [rLY]
 	cp 144
-	jp c, WaitVBlank ; while rLY < 144
+	jp c, .waitVBlank ; while rLY < 144
+    pop af
 	ret
 
 
@@ -11,6 +14,7 @@ WaitVBlank:
 ; @param hl: Destination
 ; @param bc: Length
 Memcopy:
+    ;push af ; a
     ld a, [de]
     ld [hli], a
     inc de
@@ -18,12 +22,13 @@ Memcopy:
     ld a, b
     or a, c
     jp nz, Memcopy
+    ;pop af
     ret
 
 
 UpdateKeys:
-    push af
-    push bc
+    push af ; a
+    push bc ; b
     ;push de
     ;push hl
 
@@ -71,6 +76,10 @@ UpdateKeys:
     ret
 
 ClearOam:
+    push af ; a
+    push bc ; b
+    push hl ; hl
+
     ld a, 0
     ld b, 160
     ld hl, _OAMRAM
@@ -78,6 +87,9 @@ ClearOam:
     ld [hli], a
     dec b
     jp nz, .clearOam
+    pop hl
+    pop bc
+    pop af
     ret
 
 
