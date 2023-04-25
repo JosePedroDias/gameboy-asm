@@ -27,21 +27,18 @@ EntryPoint:
 	ld hl, $8000
 	ld bc, PaddleEnd - Paddle
 	call Memcopy
+
+	; Copy the ball tile
+	ld de, Ball
+	ld hl, $8010
+	ld bc, BallEnd - Ball
+	call Memcopy
 	
 	; Copy the tilemap
 	ld de, Tilemap
 	ld hl, $9800
 	ld bc, TilemapEnd - Tilemap
 	call Memcopy
-
-    ; set BGP palette
-    ;ld a, %00011011 ; black to white
-    ld a, %11100100 ; white to black
-	ld [rBGP], a
-
-	; Turn the LCD on
-	;ld a, LCDCF_ON | LCDCF_BGON
-	;ld [rLCDC], a
 
     ; clean OAM
     ld a, 0
@@ -53,21 +50,31 @@ ClearOam:
     dec b
     jp nz, ClearOam
 
-    ; draw object
+    ; define object (paddle)
     ld hl, _OAMRAM
-    ld a, 128 + 16 ; x=128
+    ld a, 128 + 16 ; y=128
     ld [hli], a
-    ld a, 16 + 8 ; y=16
+    ld a, 16 + 8 ;   x=16
     ld [hli], a
-    ld a, 0 ; tile id=0
+    ld a, 0 ;        tile id=0, attributes=0
     ld [hli], a
-    ld [hl], a ; attributes=0
+    ld [hli], a 
+
+	; define object (ball)
+	ld a, 100 + 16 ; y=100
+	ld [hli], a
+	ld a, 32 + 8 ;   x=32
+	ld [hli], a
+	ld a, 1 ;        tile id=1
+	ld [hli], a 
+	ld a, 0 ;        attributes=0
+	ld [hli], a 
 
     ; Turn the LCD on
     ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON
     ld [rLCDC], a
 
-    ; During the first (blank) frame, initialize display registers
+    ; During the first (blank) frame, initialize display registers (palettes)
     ld a, %11100100
     ld [rBGP], a
     ld a, %11100100
@@ -77,8 +84,36 @@ ClearOam:
 	ld a, 0
     ld [wFrameCounter], a
 
+	; The ball starts out going up and to the right
+	ld a, 1 ; right
+	ld [wBallMomentumX], a
+	ld a, -1 ; up
+	ld [wBallMomentumY], a
+	
+
 Main:
 	call WaitVBlank
+
+	ld a, [wFrameCounter]
+    inc a
+    ld [wFrameCounter], a
+    cp a, 10 ; Every 15 frames (a quarter of a second), run the following code
+    jp nz, Main
+    ld a, 0 ; Reset the frame counter back to 0
+    ld [wFrameCounter], a
+
+	; Add the ball's momentum to its position in OAM.
+    ld a, [wBallMomentumX]
+    ld b, a
+    ld a, [_OAMRAM + 5] ; ball's x
+    add a, b
+    ld [_OAMRAM + 5], a
+
+    ld a, [wBallMomentumY]
+    ld b, a
+    ld a, [_OAMRAM + 4] ;ball's y
+    add a, b
+    ld [_OAMRAM + 4], a
 
 	; Check the current keys every frame and move left or right.
 	call UpdateKeys
@@ -182,6 +217,9 @@ SECTION "Input Variables", WRAM0
 	wCurKeys: db
 	wNewKeys: db
 
-
+SECTION "Ball Data", WRAM0
+	wBallMomentumX: db
+	wBallMomentumY: db
+	
 
 INCLUDE "brick.inc"
