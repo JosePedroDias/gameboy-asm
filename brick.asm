@@ -1,5 +1,10 @@
 INCLUDE "hardware.inc"
 
+; constants
+DEF BRICK_LEFT EQU $05
+DEF BRICK_RIGHT EQU $06
+DEF BLANK_TILE EQU $08
+
 SECTION "Header", ROM0[$100]
 	jp EntryPoint
 	ds $150 - @, 0 ; Make room for the header
@@ -138,6 +143,7 @@ BounceOnTop:
     ld a, [hl]
     call IsWallTile
     jp nz, BounceOnRight
+	call CheckAndHandleBrick
     ld a, 1
     ld [wBallMomentumY], a
 
@@ -152,6 +158,7 @@ BounceOnRight:
     ld a, [hl]
     call IsWallTile
     jp nz, BounceOnLeft
+	call CheckAndHandleBrick
     ld a, -1
     ld [wBallMomentumX], a
 
@@ -166,6 +173,7 @@ BounceOnLeft:
     ld a, [hl]
     call IsWallTile
     jp nz, BounceOnBottom
+	call CheckAndHandleBrick
     ld a, 1
     ld [wBallMomentumX], a
 
@@ -180,11 +188,12 @@ BounceOnBottom:
     ld a, [hl]
     call IsWallTile
     jp nz, BounceDone
+	call CheckAndHandleBrick
     ld a, -1
     ld [wBallMomentumY], a
 
 BounceDone:
-	;jp PaddleBounceDone
+	jp PaddleBounceDone
 
 	; TODO THIS PART IS NOT WORKING WELL
 
@@ -355,6 +364,27 @@ IsWallTile:
     ret z
     cp a, $07
     ret
+
+
+; Checks if a brick was collided with and breaks it if possible.
+; @param hl: address of tile.
+CheckAndHandleBrick:
+    ld a, [hl]
+    cp a, BRICK_LEFT
+    jr nz, CheckAndHandleBrickRight
+    ; Break a brick from the left side.
+    ld [hl], BLANK_TILE
+    inc hl
+    ld [hl], BLANK_TILE
+CheckAndHandleBrickRight:
+    cp a, BRICK_RIGHT
+    ret nz
+    ; Break a brick from the right side.
+    ld [hl], BLANK_TILE
+    dec hl
+    ld [hl], BLANK_TILE
+    ret
+
 
 
 SECTION "Counter", WRAM0
