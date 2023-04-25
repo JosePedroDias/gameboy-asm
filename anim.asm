@@ -23,14 +23,7 @@ EntryPoint:
 	ld bc, TileOEnd - TileO
 	call Memcopy
 
-    ; clean OAM
-    ld a, 0
-    ld b, 160
-    ld hl, _OAMRAM
-    ClearOam:
-    ld [hli], a
-    dec b
-    jp nz, ClearOam
+    call ClearOam
 
     ; define objects
     ld hl, _OAMRAM
@@ -71,9 +64,8 @@ Main:
 	call WaitVBlank
 
     ld a, [frameNo]
-    cp a, 0
-    jp z, GoOn
     dec a
+    jp z, GoOn
     ld [frameNo], a
     jp Main
 
@@ -101,27 +93,7 @@ SkipXReset:
 ;;;;;;;;;;;;;;;;;;
 
 
-; wait for vblank to continue
-WaitVBlank:
-	ld a, [rLY]
-	cp 144
-	jp c, WaitVBlank ; while rLY < 144
-	ret
-
-
-; Copy bytes from one area to another.
-; @param de: Source
-; @param hl: Destination
-; @param bc: Length
-Memcopy:
-    ld a, [de]
-    ld [hli], a
-    inc de
-    dec bc
-    ld a, b
-    or a, c
-    jp nz, Memcopy
-    ret
+INCLUDE "misc.inc"
 
 
 ;;;;;;;;;;;;;;;;;;
@@ -129,9 +101,12 @@ Memcopy:
 
 SECTION "Vars", WRAM0
     frameNo: db
+
     x: db
     dx: db
 
+    wCurKeys: db
+    wNewKeys: db
 
 ;;;;;;;;;;;;;;;;;;
 
