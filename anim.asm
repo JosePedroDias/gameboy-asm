@@ -6,6 +6,9 @@ DEF X_MIN EQU  6; +  8 ; offset x is 8
 DEF X_MAX EQU 154 +  8
 DEF Y     EQU  62 + 16  ; offset y is 16
 
+DEF VRAM_FG_START EQU $8000
+DEF VRAM_BG_START EQU $9000
+
 SECTION "Start", ROM0[$100]
 	jp EntryPoint
 	ds $150 - @, 0 ; Make room for the header
@@ -19,15 +22,43 @@ EntryPoint:
     ld a, 0
 	ld [rLCDC], a ; Turn the LCD off
 
-    ld de, TileO
-	ld hl, $8000 ; each takes $10
-	ld bc, TileOEnd - TileO
+    ld de, TileDot
+	ld hl, VRAM_FG_START ; each takes $10
+	ld bc, TileDotEnd - TileDot
+	call Memcopy
+
+    ld de, TileEmpty
+	ld hl, VRAM_BG_START + 0 * $10
+	ld bc, TileEmptyEnd - TileEmpty
 	call Memcopy
 
     ld de, Tile0
-	ld hl, $9000
+	ld hl, VRAM_BG_START + 1 * $10 ; starts at #1
 	ld bc, Tile9End - Tile0
 	call Memcopy
+
+    ld de, TileA
+	ld hl, VRAM_BG_START + 11 * $10 ; starts at #11
+	ld bc, TileZEnd - TileA
+	call Memcopy
+
+    ld a, 18 + 11 ; S
+    ld [_SCRN0 + 0], a
+    ld a, 2 + 11 ; C
+    ld [_SCRN0 + 1], a
+    ld a, 14 + 11 ; O
+    ld [_SCRN0 + 2], a
+    ld a, 17 + 11 ; R
+    ld [_SCRN0 + 3], a
+    ld a, 4 + 11 ; E
+    ld [_SCRN0 + 4], a
+
+    ld a, 1 + 1 ; 1
+    ld [_SCRN0 + 0 + 32], a
+    ld a, 2 + 1 ; 2
+    ld [_SCRN0 + 1 + 32], a
+    ld a, 3 + 1 ; 3
+    ld [_SCRN0 + 2 + 32], a
 
     call ClearOam
 
@@ -132,6 +163,7 @@ MoveObject:
 
 INCLUDE "misc.inc"
 INCLUDE "digits.inc"
+INCLUDE "alphabet.inc"
 
 
 ;;;;;;;;;;;;;;;;;;
@@ -154,7 +186,7 @@ SECTION "Tile data", ROM0
 
 ; FG
 
-TileO: ; 0
+TileDot: ; 0
     dw `00000000
     dw `00333300
     dw `03222230
@@ -163,4 +195,15 @@ TileO: ; 0
     dw `03222230
     dw `00333300
     dw `00000000
-TileOEnd:
+TileDotEnd:
+
+TileEmpty: ; 0
+    dw `00000000
+    dw `00000000
+    dw `00000000
+    dw `00000000
+    dw `00000000
+    dw `00000000
+    dw `00000000
+    dw `00000000
+TileEmptyEnd:
