@@ -20,8 +20,13 @@ EntryPoint:
 	ld [rLCDC], a ; Turn the LCD off
 
     ld de, TileO
-	ld hl, $8000
+	ld hl, $8000 ; each takes $10
 	ld bc, TileOEnd - TileO
+	call Memcopy
+
+    ld de, Tile0
+	ld hl, $9000
+	ld bc, Tile9End - Tile0
 	call Memcopy
 
     call ClearOam
@@ -126,6 +131,7 @@ MoveObject:
 
 
 INCLUDE "misc.inc"
+INCLUDE "digits.inc"
 
 
 ;;;;;;;;;;;;;;;;;;
