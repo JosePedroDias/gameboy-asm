@@ -24,7 +24,7 @@ EntryPoint:
     ld [rNR50], a
 
     ;call PlayC3
-    call PlayJump
+    ;call PlayJump
 
     call WaitVBlank
 
@@ -150,6 +150,7 @@ Main:
 ; key A
     call IncScore
     call DrawScore
+    call PlayC3
 
 .afterKeyA:
     ld a, [wCurKeys]
@@ -188,6 +189,7 @@ Main:
     jp nz, .moveObject
     ld b, a
     ld a, 1 ; to right
+    call PlayJump
     ld [dx], a
     ld a, b
     jp .moveObject
@@ -199,6 +201,7 @@ Main:
     jp nz, .moveObject
     ld b, a
     ld a, -1 ; to left
+    call PlayJump
     ld [dx], a
     ld a, b
 
@@ -291,6 +294,7 @@ DrawScoreAux:
 ; AUDIO - ADAPTED FROM https://github.com/pashutk/flappybird-gameboy/blob/master/game.c
 
 PlayJump:
+    push af
     ld a, $36
     ld [rNR10], a ; Aud01 sweep - [6-4]time; [3]inc/dec [2-0]shift
     ld a, $10
@@ -301,9 +305,11 @@ PlayJump:
     ld [rNR13], a ; Aud01 low freq
     ld a, $87
     ld [rNR14], a ; Aud01 high freq
+    pop af
     ret
 
 PlayC3:
+    push af
     ld a, $82
     ld [rNR21], a ; Aud02 wave pattern duty
     ld a, $81
@@ -312,6 +318,7 @@ PlayC3:
     ld [rNR23], a ; Aud02 low freq
     ld a, $C0
     ld [rNR24], a ; Aud02 high freq
+    pop af
     ret
 
 ;;;;;;;;;;;;;;;;;;

@@ -124,3 +124,11 @@ The Gameboy's CPU has an instruction called DAA (Decimal Adjust Accumulator) tha
 a two-digit base 10 value (four bits per digit). You can then shift/mask the byte and use it as an offset to look up the correct tile in your tileset.
 
 https://www.reddit.com/r/Gameboy/comments/4m7sm0/comment/d3tiyt5/?utm_source=share&utm_medium=web2x&context=3
+
+
+
+### Audio
+
+- https://treytomes.wordpress.com/2020/01/02/gameboy-development-part-2-sound-channel-2/
+- https://www.dropbox.com/s/c1eht1h86hjilz2/tone.c?dl=0
+- https://gbdev.io/pandocs/Audio_Registers.html
