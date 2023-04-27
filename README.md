@@ -19,6 +19,7 @@
 - [x] draw score in BCD
 - [ ] tilemap scrolling
 - [ ] draw using window overlay
+- [ ] use int + fixed decimals for jumping etc (increments of 16)
 - [ ] load/save data
 - [ ] SFX
 - [ ] music
@@ -35,6 +36,7 @@
 ## tool chain
 
 - RGBDS - https://rgbds.gbdev.io `brew install rgbds`
+- for simple things, online (old) - https://daid.github.io/rgbds-live/
 
 ## syntax support
 
@@ -53,8 +55,8 @@
 
 ### Trackers
 
-- littlesounddj - https://www.littlesounddj.com/lsd/index.php
-- hUGETracker - https://github.com/SuperDisk/hUGETracker
+- little sound dj - https://www.littlesounddj.com/lsd/index.php
+- hUGE Tracker - https://github.com/SuperDisk/hUGETracker
 - carrillon - https://gbdev.gg8.se/files/musictools/Aleksi%20Eeben/
 
 ### Tricks
@@ -67,6 +69,7 @@
 
 - https://gbdev.io/pandocs/
 - https://gbdev.io/gb-asm-tutorial/
+- gameboy programming manual 1.1 - https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
 - https://gbdev.io/resources.html
 - https://famicom.party/book/ (NES)
 

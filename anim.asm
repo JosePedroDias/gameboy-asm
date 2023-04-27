@@ -34,7 +34,8 @@ EntryPoint:
     ld [dx], a
 
     ld a, 0
-    ld [score], a
+    ld [scoreLow], a
+    ld [scoreHigh], a
 
 
     ld a, 0
@@ -138,10 +139,7 @@ Main:
     jp z, .afterKeyA
 
 ; key A
-    ld a, [score]
-    inc a
-    daa
-    ld [score], a
+    call IncScore
     call DrawScore
 
 .afterKeyA:
@@ -212,20 +210,72 @@ Main:
 ;;;;;;;;;;;;;;;;;;
 
 
-; @param [score] score in binary
-DrawScore:
-    ld a, [score]
+IncScore:
+    ld a, 0
+    cp a, 0 ; erase carry flag
 
+    ld a, [scoreLow]
+    inc a
+    daa
+    ld [scoreLow], a
+
+    jp nc, .skipHigh
+
+    ld a, 0
+    cp a, 0 ; erase carry flag
+
+    ld a, [scoreHigh]
+    inc a
+    daa
+    ld [scoreHigh], a
+
+.skipHigh:
+    ret
+
+
+; @param [scoreLow]
+; @param [scoreHigh]
+DrawScore:
+    ld bc, scoreHigh
+    ld d, 0
+    call DrawScoreAux
+
+    ld bc, scoreLow
+    ld d, 2
+    call DrawScoreAux
+
+    ret
+
+; @param [bc] score part in BCD
+; @param d deltaX in tiles from left
+DrawScoreAux:
+    push bc
+    pop hl
+    ld a, [hl]
     ld b, a
+
+    ld hl, _SCRN0 + 0 + 32
+    ld a, d
+
+.dsaLoop:
+    ld a, d
+    cp a, 0
+    jp z, .dsaIncsDone
+    inc hl
+    dec d
+    jp .dsaLoop
+
+.dsaIncsDone:
+    ld a, b
     and a, $F0
     swap a
     inc a
-    ld [_SCRN0 + 0 + 32], a
+    ld [hli], a
 
     ld a, b
     and a, $0F
     inc a
-    ld [_SCRN0 + 1 + 32], a
+    ld [hl], a
 
     ret
 
@@ -253,7 +303,8 @@ SECTION "Vars", WRAM0
 
     randomVal: db
 
-    score: db
+    scoreLow: db
+    scoreHigh: db
 
 ;;;;;;;;;;;;;;;;;;
 
