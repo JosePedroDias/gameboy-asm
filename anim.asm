@@ -71,9 +71,9 @@ EntryPoint:
     ld a, X_MIN;0 + 8 ; x
     ld [hli], a
     ld a, 0 ; tile id
-    ld [hli], a 
+    ld [hli], a
     ld a, 0 ; attributes
-    ld [hli], a 
+    ld [hli], a
 
     ld a, LCDCF_ON | LCDCF_BGON | LCDCF_OBJON ; Turn the LCD on
     ld [rLCDC], a
@@ -90,7 +90,7 @@ EntryPoint:
 
     ld a, FRAMES
     ld [frameNo], a
-    
+
     ld a, X_MIN
     ld [x], a
 
@@ -103,58 +103,94 @@ EntryPoint:
 Main:
 	call WaitVBlank
 
+; RandomizeX:
+;     call RNG ; updates RandomVal
+;     cp a, 152
+;     jp nc, RandomizeX
+
+;     ; screen dims are 160x144 pixels (20x18 sprites)
+;     ; to 160-8 = [0, 152]
+;     add 8
+;     ld hl, _OAMRAM+1
+;     ld [hl], a
+
+;     jp Main
+
+
     ld a, [frameNo]
     dec a
-    jp z, DoFrame
+    jp z, .doFrame
     ld [frameNo], a
     jp Main
-DoFrame:
+.doFrame:
     ld a, FRAMES
     ld [frameNo], a
 
-    ld a, [dx]
-    ld b, a
-    ld a, 1
-    cp a, b
-    jp z, GoingRight
+; up or down via keys
 
     call UpdateKeys
 
     ld a, [wCurKeys]
     and a, PADF_UP
-    jp z, GoingLeft
+    jp z, .afterUp
 
+; up:
     ld a, [y]
     dec a
-    ld hl, _OAMRAM
-    ld [hl], a
+    ld [y], a
+    jp .afterDown
+
+.afterUp:
+    ld a, [wCurKeys]
+    and a, PADF_DOWN
+    jp z, .afterDown
+
+; down:
+    ld a, [y]
+    inc a
     ld [y], a
 
-GoingLeft:
+.afterDown:
+
+; left/right via dx and x
+
+    ld a, [dx] ; dx == 1 ?
+    cp a, 1
+    jp z, .goingRight
+
+
+.goingLeft:
     ld a, [x]
     dec a
     cp a, X_MIN
-    jp nz, MoveObject
+    jp nz, .moveObject
     ld b, a
-    ld a, 1
+    ld a, 1 ; to right
     ld [dx], a
     ld a, b
-    jp MoveObject
+    jp .moveObject
 
-GoingRight:
+.goingRight:
     ld a, [x]
     inc a
     cp a, X_MAX
-    jp nz, MoveObject
+    jp nz, .moveObject
     ld b, a
-    ld a, -1
+    ld a, -1 ; to left
     ld [dx], a
     ld a, b
 
-MoveObject:
+.moveObject:
     ld [x], a
-    ld hl, _OAMRAM+1
+
+    ld hl, _OAMRAM
+
+    ld a, [y]
+    ld [hli], a ; set y and move to x
+
+    ld a, [x]
     ld [hl], a
+
     jp Main
 
 
@@ -178,6 +214,8 @@ SECTION "Vars", WRAM0
 
     wCurKeys: db
     wNewKeys: db
+
+    RandomVal: db
 
 ;;;;;;;;;;;;;;;;;;
 

@@ -27,8 +27,8 @@ Memcopy:
 
 
 UpdateKeys:
-    push af ; a
-    push bc ; b
+    ;push af ; a
+    ;push bc ; b
     ;push de
     ;push hl
 
@@ -38,18 +38,18 @@ UpdateKeys:
 	ld b, a ; B7-4 = 1; B3-0 = unpressed buttons
 
     ;call .knownRet
-  
+
 	; Poll the other half
 	ld a, P1F_GET_DPAD
 	call .onenibble
 	swap a ; A3-0 = unpressed directions; A7-4 = 1
 	xor a, b ; A = pressed buttons + directions
 	ld b, a ; B = pressed buttons + directions
-  
+
 	; And release the controller
 	ld a, P1F_GET_NONE
 	ldh [rP1], a
-  
+
 	; Combine with previous wCurKeys to make wNewKeys
 	ld a, [wCurKeys]
 	xor a, b ; A = keys that changed state
@@ -58,8 +58,8 @@ UpdateKeys:
 	ld a, b
 	ld [wCurKeys], a
 
-    pop bc
-    pop af
+    ;pop bc
+    ;pop af
 	ret
   .onenibble
 	ldh [rP1], a ; switch the key matrix
@@ -124,3 +124,46 @@ GetTileByPixel:
     ld bc, $9800
     add hl, bc
     ret
+
+
+; borrowed from https://github.com/jeremyherbert/gb-snake/blob/master/snake.asm#L288
+; see http://en.wikipedia.org/wiki/Linear_feedback_shift_register for info on how this works
+; taps at 8, 6, 5, 4
+; reads and updates RandomVal
+; also returns value to a
+; changes e, d, b
+RNG:
+	ld a, [RandomVal]		; load up the seed
+	ld e, a				; e will store our seed value
+
+lfsr_generate_loop:
+	ld d, a
+
+	rr d				; roll four times
+	rr d
+	rr d
+	rr d
+	xor d				; xor it
+
+	rr d				; five rolls in total
+	xor d
+
+	rr d				; up to 6 rolls
+	xor d				; xor it in
+
+	rr d
+	rr d				; 8 rolls, this is our fourth and last tap
+	xor d
+
+	; not really sure if secure crypto allows me to do this, but frankly if you would like to game my system then go for it
+	ld b, a
+	ld a, [rDIV]			; source of some more random
+	xor b				; add it in
+
+	cp e
+	jr z, lfsr_generate_loop	; make sure it is different
+
+	; save it
+	ld [RandomVal], a
+
+	ret
