@@ -129,14 +129,14 @@ GetTileByPixel:
 ; borrowed from https://github.com/jeremyherbert/gb-snake/blob/master/snake.asm#L288
 ; see http://en.wikipedia.org/wiki/Linear_feedback_shift_register for info on how this works
 ; taps at 8, 6, 5, 4
-; reads and updates RandomVal
+; reads and updates randomVal
 ; also returns value to a
 ; changes e, d, b
 RNG:
-	ld a, [RandomVal]		; load up the seed
+	ld a, [randomVal]	; load up the seed
 	ld e, a				; e will store our seed value
 
-lfsr_generate_loop:
+.lfsrLoop:
 	ld d, a
 
 	rr d				; roll four times
@@ -155,15 +155,13 @@ lfsr_generate_loop:
 	rr d				; 8 rolls, this is our fourth and last tap
 	xor d
 
-	; not really sure if secure crypto allows me to do this, but frankly if you would like to game my system then go for it
 	ld b, a
-	ld a, [rDIV]			; source of some more random
+	ld a, [rDIV]		; source of some more random
 	xor b				; add it in
 
 	cp e
-	jr z, lfsr_generate_loop	; make sure it is different
+	jr z, .lfsrLoop     ; make sure it is different
 
-	; save it
-	ld [RandomVal], a
+	ld [randomVal], a   ; save it
 
 	ret

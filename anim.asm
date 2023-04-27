@@ -19,6 +19,24 @@ EntryPoint:
 
     call WaitVBlank
 
+
+    ; assign vars
+    ld a, FRAMES
+    ld [frameNo], a
+
+    ld a, X_MIN
+    ld [x], a
+
+    ld a, Y
+    ld [y], a
+
+    ld a, 1
+    ld [dx], a
+
+    ld a, 0
+    ld [score], a
+
+
     ld a, 0
 	ld [rLCDC], a ; Turn the LCD off
 
@@ -42,6 +60,8 @@ EntryPoint:
 	ld bc, TileZEnd - TileA
 	call Memcopy
 
+    ; TODO: clear tilemap
+
     ld a, 18 + 11 ; S
     ld [_SCRN0 + 0], a
     ld a, 2 + 11 ; C
@@ -53,12 +73,7 @@ EntryPoint:
     ld a, 4 + 11 ; E
     ld [_SCRN0 + 4], a
 
-    ld a, 1 + 1 ; 1
-    ld [_SCRN0 + 0 + 32], a
-    ld a, 2 + 1 ; 2
-    ld [_SCRN0 + 1 + 32], a
-    ld a, 3 + 1 ; 3
-    ld [_SCRN0 + 2 + 32], a
+    call DrawScore
 
     call ClearOam
 
@@ -88,23 +103,11 @@ EntryPoint:
     ld [rSCX], a
     ld [rSCY], a
 
-    ld a, FRAMES
-    ld [frameNo], a
-
-    ld a, X_MIN
-    ld [x], a
-
-    ld a, 50
-    ld [y], a
-
-    ld a, 1
-    ld [dx], a
-
 Main:
 	call WaitVBlank
 
 ; RandomizeX:
-;     call RNG ; updates RandomVal
+;     call RNG ; updates randomVal
 ;     cp a, 152
 ;     jp nc, RandomizeX
 
@@ -126,31 +129,43 @@ Main:
     ld a, FRAMES
     ld [frameNo], a
 
-; up or down via keys
+; A, up or down via keys
 
     call UpdateKeys
 
     ld a, [wCurKeys]
-    and a, PADF_UP
-    jp z, .afterUp
+    and a, PADF_A
+    jp z, .afterKeyA
 
-; up:
+; key A
+    ld a, [score]
+    inc a
+    daa
+    ld [score], a
+    call DrawScore
+
+.afterKeyA:
+    ld a, [wCurKeys]
+    and a, PADF_UP
+    jp z, .afterKeyUp
+
+; key up:
     ld a, [y]
     dec a
     ld [y], a
-    jp .afterDown
+    jp .afterKeyDown
 
-.afterUp:
+.afterKeyUp:
     ld a, [wCurKeys]
     and a, PADF_DOWN
-    jp z, .afterDown
+    jp z, .afterKeyDown
 
-; down:
+; key down:
     ld a, [y]
     inc a
     ld [y], a
 
-.afterDown:
+.afterKeyDown:
 
 ; left/right via dx and x
 
@@ -197,6 +212,27 @@ Main:
 ;;;;;;;;;;;;;;;;;;
 
 
+; @param [score] score in binary
+DrawScore:
+    ld a, [score]
+
+    ld b, a
+    and a, $F0
+    swap a
+    inc a
+    ld [_SCRN0 + 0 + 32], a
+
+    ld a, b
+    and a, $0F
+    inc a
+    ld [_SCRN0 + 1 + 32], a
+
+    ret
+
+
+;;;;;;;;;;;;;;;;;;
+
+
 INCLUDE "misc.inc"
 INCLUDE "digits.inc"
 INCLUDE "alphabet.inc"
@@ -215,7 +251,9 @@ SECTION "Vars", WRAM0
     wCurKeys: db
     wNewKeys: db
 
-    RandomVal: db
+    randomVal: db
+
+    score: db
 
 ;;;;;;;;;;;;;;;;;;
 

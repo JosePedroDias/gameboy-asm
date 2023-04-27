@@ -13,37 +13,21 @@
 - [x] tile usage
 - [x] tilemap usage
 - [x] frame sync
-- [x] basic linear animation
-- [x] basic RNG (1)
-- [x] keyboard handling
+- [x] linear animation
+- [x] RNG
+- [x] joypad handling
+- [x] draw score in BCD
 - [ ] tilemap scrolling
-- [ ] fixed sub-window
-- [ ] macros
-- [.] score label
+- [ ] draw using window overlay
 - [ ] load/save data
-- [ ] basic SFX
-- [ ] basic music
-- [ ] palette animation
-- [ ] frame draw effect
-- [ ] test in actual gbc
+- [ ] SFX
+- [ ] music
+- [ ] palette animation (fade, rotate)
+- [ ] frame draw effect (interrupt on HBlank?)
+- [ ] other interrupts (input, timer?)
+- [ ] test in actual GBC
 - [ ] bank loading (if necessary)
-
-
-## Notes
-
-### RNG
-
-- https://www.youtube.com/watch?v=TPbroUDHG0s
-https://meatfighter.com/nintendotetrisai/#Picking_Tetriminos
-16-bit Fibonacci linear feedback shift register (LFSR)
-(XOR bits 1 and 9, store in bit 16, shift right)
-
-https://en.wikipedia.org/wiki/Linear-feedback_shift_register
-https://github.com/jeremyherbert/gb-snake/blob/master/snake.asm#L288
-
-https://harddrop.com/wiki/Tetris_(Game_Boy)#Randomizer
-
-https://simon.lc/the-history-of-tetris-randomizers
+- [ ] macros
 
 
 ## Tools
@@ -111,3 +95,28 @@ https://simon.lc/the-history-of-tetris-randomizers
 - other articles
     - https://mitxela.com/projects/swotgb/about
     - http://www.dotmatrixgame.com/
+
+
+## Notes
+
+### RNG
+
+- https://www.youtube.com/watch?v=TPbroUDHG0s
+https://meatfighter.com/nintendotetrisai/#Picking_Tetriminos
+16-bit Fibonacci linear feedback shift register (LFSR)
+(XOR bits 1 and 9, store in bit 16, shift right)
+
+https://en.wikipedia.org/wiki/Linear-feedback_shift_register
+https://github.com/jeremyherbert/gb-snake/blob/master/snake.asm#L288
+
+https://harddrop.com/wiki/Tetris_(Game_Boy)#Randomizer
+
+https://simon.lc/the-history-of-tetris-randomizers
+
+### BCD
+
+BCD, binary coded decimal
+The Gameboy's CPU has an instruction called DAA (Decimal Adjust Accumulator) that will take a byte and convert it into
+a two-digit base 10 value (four bits per digit). You can then shift/mask the byte and use it as an offset to look up the correct tile in your tileset.
+
+https://www.reddit.com/r/Gameboy/comments/4m7sm0/comment/d3tiyt5/?utm_source=share&utm_medium=web2x&context=3
