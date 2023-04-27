@@ -21,12 +21,12 @@
 - [ ] draw using window overlay
 - [ ] use int + fixed decimals for jumping etc (increments of 16)
 - [ ] load/save data
-- [ ] SFX
-- [ ] music
+- [.] music (duty)
+- [ ] SFX/noise
+- [ ] music sequence
 - [ ] palette animation (fade, rotate)
-- [ ] frame draw effect (interrupt on HBlank?)
+- [ ] frame draw effect (interrupt on HBlank?)   https://github.com/gb-archive/DeadCScroll
 - [ ] other interrupts (input, timer?)
-- [ ] test in actual GBC
 - [ ] bank loading (if necessary)
 - [ ] macros
 
@@ -71,6 +71,7 @@
 - https://gbdev.io/gb-asm-tutorial/
 - gameboy programming manual 1.1 - https://ia803208.us.archive.org/9/items/GameBoyProgManVer1.1/GameBoyProgManVer1.1.pdf
 - https://gbdev.io/resources.html
+- https://github.com/gbdev/awesome-gbdev
 - https://famicom.party/book/ (NES)
 
 - ASM examples:

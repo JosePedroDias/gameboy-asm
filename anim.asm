@@ -14,8 +14,17 @@ SECTION "Start", ROM0[$100]
 	ds $150 - @, 0 ; Make room for the header
 
 EntryPoint:
-    ld a, 0
-	ld [rNR52], a ; Shut down audio circuitry
+    ;ld a, 0 ; all off
+    ld a, $80 ; all sfx on
+	ld [rNR52], a
+
+    ld a, $FF ; output channels for S02 (higher) and S02 (lower)
+    ld [rNR51], a
+    ld a, $77 ; output levels for S02 and S01
+    ld [rNR50], a
+
+    ;call PlayC3
+    call PlayJump
 
     call WaitVBlank
 
@@ -279,6 +288,31 @@ DrawScoreAux:
 
     ret
 
+; AUDIO - ADAPTED FROM https://github.com/pashutk/flappybird-gameboy/blob/master/game.c
+
+PlayJump:
+    ld a, $36
+    ld [rNR10], a ; Aud01 sweep - [6-4]time; [3]inc/dec [2-0]shift
+    ld a, $10
+    ld [rNR11], a ; Aud01 length/wave pattern duty - [7-6]wave pattern duty [5-0]length
+    ld a, $83
+    ld [rNR12], a ; Aud01 envelope - [7-4]v0 [3]up/down [2-0]numSweep
+    ld a, $00
+    ld [rNR13], a ; Aud01 low freq
+    ld a, $87
+    ld [rNR14], a ; Aud01 high freq
+    ret
+
+PlayC3:
+    ld a, $82
+    ld [rNR21], a ; Aud02 wave pattern duty
+    ld a, $81
+    ld [rNR22], a ; Aud02 envelope
+    ld a, $10
+    ld [rNR23], a ; Aud02 low freq
+    ld a, $C0
+    ld [rNR24], a ; Aud02 high freq
+    ret
 
 ;;;;;;;;;;;;;;;;;;
 
